@@ -16,9 +16,10 @@ namespace XmlDocCollapser
         
         public void TextViewCreated(IWpfTextView textView)
         {
-            IOutliningManager outliningManager = OutliningManagerService.GetOutliningManager(textView);
+            IOutliningManager outliningManager = OutliningManagerService?.GetOutliningManager(textView);
 
-            outliningManager.RegionsChanged += OutliningManager_RegionsChanged;
+            if (outliningManager != null)
+                outliningManager.RegionsChanged += OutliningManager_RegionsChanged;
         }
 
         private void OutliningManager_RegionsChanged(object sender, RegionsChangedEventArgs e)
@@ -27,10 +28,24 @@ namespace XmlDocCollapser
 
             IOutliningManager outliningManager = sender as IOutliningManager;
 
-            outliningManager.CollapseAll(e.AffectedSpan, c => c.CollapsedForm.ToString().StartsWith(xmlDocCollapsedFormStart) && !c.IsCollapsed && c.IsCollapsible);
+            outliningManager.CollapseAll(e.AffectedSpan, c => c?.CollapsedForm?.ToString()?.StartsWith(xmlDocCollapsedFormStart) ?? false && !c.IsCollapsed && c.IsCollapsible);
 
             //Unsubscribe from RegionsChanged after initial change
             outliningManager.RegionsChanged -= OutliningManager_RegionsChanged;
         }
     }
 }
+
+/*
+
+    System.NullReferenceException: 
+    Object reference not set to an instance of an object. at 
+    XmlDocCollapser.TextViewCreationListener.TextViewCreated(IWpfTextView textView) 
+    in 
+    E:\Users\micha\VisualStudio\Projects\VSIX\XmlDocCollapser\XmlDocCollapser\TextViewCreationListener.cs:line 21 
+        at Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.<>c__DisplayClass244_0.<BindContentTypeSpecificAssets>b__1() 
+        at Microsoft.VisualStudio.Text.Utilities.GuardedOperations.CallExtensionPoint(Object errorSource, Action call)
+        --- End of stack trace from previous location where exception was thrown --- 
+        at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)
+     
+     */
