@@ -35,17 +35,3 @@ namespace XmlDocCollapser
         }
     }
 }
-
-/*
-
-    System.NullReferenceException: 
-    Object reference not set to an instance of an object. at 
-    XmlDocCollapser.TextViewCreationListener.TextViewCreated(IWpfTextView textView) 
-    in 
-    E:\Users\micha\VisualStudio\Projects\VSIX\XmlDocCollapser\XmlDocCollapser\TextViewCreationListener.cs:line 21 
-        at Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.<>c__DisplayClass244_0.<BindContentTypeSpecificAssets>b__1() 
-        at Microsoft.VisualStudio.Text.Utilities.GuardedOperations.CallExtensionPoint(Object errorSource, Action call)
-        --- End of stack trace from previous location where exception was thrown --- 
-        at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)
-     
-     */
