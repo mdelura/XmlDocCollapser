@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Text.Editor;
+﻿using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Utilities;
+using System.ComponentModel.Composition;
 
 namespace XmlDocCollapser
 {
@@ -13,25 +12,36 @@ namespace XmlDocCollapser
     {
         [Import]
         internal IOutliningManagerService OutliningManagerService { get; set; }
-        
+
         public void TextViewCreated(IWpfTextView textView)
         {
-            IOutliningManager outliningManager = OutliningManagerService?.GetOutliningManager(textView);
-
-            if (outliningManager != null)
-                outliningManager.RegionsChanged += OutliningManager_RegionsChanged;
+            var manager = OutliningManagerService?.GetOutliningManager(textView);
+            if (manager != null)
+                manager.RegionsChanged += RegionChangedHandler;
         }
 
-        private void OutliningManager_RegionsChanged(object sender, RegionsChangedEventArgs e)
+        void RegionChangedHandler(object sender, RegionsChangedEventArgs e)
         {
-            const string xmlDocCollapsedFormStart = "/// <summary>";
+            var manager = sender as IOutliningManager;
+            manager.CollapseAll(e.AffectedSpan, c => Selector(c));
+            manager.RegionsChanged -= RegionChangedHandler;
+        }
 
-            IOutliningManager outliningManager = sender as IOutliningManager;
+        static bool Selector(ICollapsible c)
+        {
+            if (c is null || c.IsCollapsed || !c.IsCollapsible)
+                return false;
 
-            outliningManager.CollapseAll(e.AffectedSpan, c => c?.CollapsedForm?.ToString()?.StartsWith(xmlDocCollapsedFormStart) ?? false && !c.IsCollapsed && c.IsCollapsible);
+            var text = c.CollapsedForm.ToString();
+            if (text.Length < 4)
+                return false;
 
-            //Unsubscribe from RegionsChanged after initial change
-            outliningManager.RegionsChanged -= OutliningManager_RegionsChanged;
+            var hasPrefix = text.StartsWith("///") || text.StartsWith("/**");
+            if (!hasPrefix)
+                return false;
+
+            var hasDelimiter = char.IsWhiteSpace(text[3]);
+            return hasDelimiter;
         }
     }
 }
